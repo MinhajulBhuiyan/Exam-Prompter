@@ -1,6 +1,11 @@
 "use client";
 
 import PaceControl from "./PaceControl";
+import CoughPanel from "./CoughPanel";
+import type { CoughSettings } from "@/lib/storage";
+import type { PlayMode } from "@/lib/usePlayer";
+import { ModeSettings } from "./ModeSettings";
+import { groupVoices, pickVoice } from "@/lib/voices";
 import { AlertIcon, SpeakerIcon } from "./Icons";
 import { formatDuration } from "@/lib/pace";
 import { countWords } from "@/lib/text";
@@ -16,27 +21,36 @@ interface Props {
   onVoiceChange: (value: string) => void;
   supported: boolean | null;
   paceNotice: string | null;
-  canResume: boolean;
-  resumeLabel: string;
   onUseSample: () => void;
   onClear: () => void;
   onPreview: () => void;
   onStart: () => void;
-  onResume: () => void;
+  cough: CoughSettings;
+  onCoughChange: (next: CoughSettings) => void;
+  showText: boolean;
+  onShowTextChange: (value: boolean) => void;
+  readPunctuation: boolean;
+  onReadPunctuationChange: (value: boolean) => void;
+  mode: PlayMode;
+  onModeChange: (mode: PlayMode) => void;
+  groupSize: number;
+  onGroupSizeChange: (n: number) => void;
+  wpm: number;
+  onWpmChange: (wpm: number) => void;
 }
 
 export default function SetupScreen(p: Props) {
   const words = countWords(p.source);
   const hasText = p.sentenceCount > 0;
-  const english = p.voices.filter((v) => v.lang.toLowerCase().startsWith("en"));
-  const others = p.voices.filter((v) => !v.lang.toLowerCase().startsWith("en"));
+  // Automatic prefers an Indian English voice when one is installed.
+  const autoVoice = pickVoice(p.voices, "south-asian");
 
   return (
     <div className="screen">
       <header className="screen-head">
         <h1>Practice your teacher&rsquo;s answer</h1>
         <p className="lede">
-          Paste the answer below. Recall reads it aloud one sentence at a time while it stays hidden,
+          Paste the answer below. Recall reads it aloud line by line on a prompter,
           so you can write down what you remember.
         </p>
       </header>
@@ -92,18 +106,16 @@ export default function SetupScreen(p: Props) {
             <div className="field">
               <label htmlFor="voice" className="field-label">Voice</label>
               <select id="voice" className="select" value={p.voiceURI} onChange={(e) => p.onVoiceChange(e.target.value)}>
-                <option value="">Browser default</option>
-                {english.length > 0 && (
-                  <optgroup label="English">
-                    {english.map((v) => <option key={v.voiceURI} value={v.voiceURI}>{v.name} ({v.lang})</option>)}
+                <option value="">Automatic{autoVoice ? ` — ${autoVoice.name}` : ""}</option>
+                {groupVoices(p.voices, "south-asian").map((g) => (
+                  <optgroup key={g.label} label={g.label}>
+                    {g.voices.map((v) => <option key={v.voiceURI} value={v.voiceURI}>{v.name} ({v.lang})</option>)}
                   </optgroup>
-                )}
-                {others.length > 0 && (
-                  <optgroup label="Other languages">
-                    {others.map((v) => <option key={v.voiceURI} value={v.voiceURI}>{v.name} ({v.lang})</option>)}
-                  </optgroup>
-                )}
+                ))}
               </select>
+              {p.voices.length === 0 && p.supported && (
+                <span className="muted small-text">No English voices were found yet. Recall will use the browser&rsquo;s default voice.</span>
+              )}
               <button type="button" className="button ghost small" onClick={p.onPreview}>
                 <SpeakerIcon size={18} /> Preview voice and pace
               </button>
@@ -116,21 +128,59 @@ export default function SetupScreen(p: Props) {
               notice={p.paceNotice}
             />
           </div>
+          <div className="settings-divider" />
+          <ModeSettings
+            mode={p.mode}
+            onModeChange={p.onModeChange}
+            groupSize={p.groupSize}
+            onGroupSizeChange={p.onGroupSizeChange}
+            wpm={p.wpm}
+            onWpmChange={p.onWpmChange}
+          />
+          <div className="settings-divider" />
+          <label className="switch-row">
+            <input
+              type="checkbox"
+              role="switch"
+              className="switch"
+              checked={p.showText}
+              onChange={(e) => p.onShowTextChange(e.target.checked)}
+            />
+            <span>
+              <strong>Show the words on the prompter</strong>
+              <span className="muted small-text block">
+                On: the prompter shows each line and highlights the word being read. Off: it only shows which line is being read, so you practice from memory (the words appear while paused, so you can pick where to continue).
+              </span>
+            </span>
+          </label>
+          <div className="settings-divider" />
+          <label className="switch-row">
+            <input
+              type="checkbox"
+              role="switch"
+              className="switch"
+              checked={p.readPunctuation}
+              onChange={(e) => p.onReadPunctuationChange(e.target.checked)}
+            />
+            <span>
+              <strong>Read punctuation aloud</strong>
+              <span className="muted small-text block">
+                Says each mark: &ldquo;comma&rdquo;, &ldquo;full stop&rdquo;, &ldquo;open bracket&rdquo;, &ldquo;apostrophe&rdquo;, &ldquo;hyphen&rdquo;, &ldquo;question mark&rdquo; and so on.
+              </span>
+            </span>
+          </label>
+          <div className="settings-divider" />
+          <CoughPanel settings={p.cough} onChange={p.onCoughChange} />
         </section>
       )}
 
       <div className="actions">
-        {p.canResume && (
-          <button type="button" className="button secondary" onClick={p.onResume}>
-            {p.resumeLabel}
-          </button>
-        )}
         <button type="button" className="button primary" onClick={p.onStart} disabled={!hasText}>
-          {p.canResume ? "Start fresh" : "Start practice"}
+          Start from the beginning
         </button>
       </div>
       <p className="center muted small-text">
-        {hasText ? "The answer stays hidden while you practice." : "Add an answer, or try the sample, to begin."}
+        {hasText ? "Reading runs by itself. Pause any time, or tap a word to continue from it. Use “Change answer” to come back here." : "Add an answer, or try the sample, to begin."}
       </p>
     </div>
   );

@@ -1,9 +1,9 @@
-@'
 # Dependencies
 node_modules/
 
 # Next.js
 .next/
+.next-build/
 out/
 
 # Build
@@ -28,4 +28,3 @@ pnpm-debug.log*
 
 # TypeScript
 *.tsbuildinfo
-'@ | Set-Content -Encoding utf8 .gitignore

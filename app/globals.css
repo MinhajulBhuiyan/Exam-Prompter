@@ -274,3 +274,114 @@ mark.hit { background: var(--hit); color: var(--hit-ink); border-radius: 3px; pa
   .pulse.on i { animation: none; height: 12px; }
   * { transition: none !important; }
 }
+
+/* ---------- cough detection ---------- */
+.block { display: block; margin-top: 2px; }
+.settings-divider { height: 1px; background: var(--line); margin: 22px 0 18px; }
+.cough { display: flex; flex-direction: column; gap: 14px; }
+.switch-row { display: flex; gap: 14px; align-items: flex-start; cursor: pointer; }
+.switch {
+  -webkit-appearance: none; appearance: none; flex: none; margin: 2px 0 0;
+  width: 44px; height: 26px; border-radius: 999px; background: var(--line-strong); position: relative; cursor: pointer; transition: background 0.15s;
+}
+.switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--surface); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25); transition: transform 0.15s; }
+.switch:checked { background: var(--accent); }
+.switch:checked::after { transform: translateX(18px); }
+.cough-status { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 12px; border-radius: 8px; background: var(--surface-2); font-size: 0.92rem; }
+.cough-status.error { background: var(--warn-soft); }
+.mic-dot { width: 9px; height: 9px; border-radius: 50%; background: #c0503f; box-shadow: 0 0 0 3px color-mix(in srgb, #c0503f 22%, transparent); }
+.mic-meter { flex: 1; min-width: 80px; max-width: 160px; height: 6px; border-radius: 999px; background: var(--line); overflow: hidden; margin-left: auto; }
+.mic-meter span { display: block; height: 100%; background: var(--accent-2); transition: width 0.09s linear; }
+.cough-options { display: flex; flex-direction: column; gap: 12px; }
+.cough-row { display: flex; align-items: center; justify-content: space-between; gap: 8px 16px; flex-wrap: wrap; }
+.cough-row-label { font-size: 0.92rem; color: var(--ink-2); }
+.cough-note { margin: 0; }
+.segmented { display: inline-flex; padding: 3px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--line); flex-wrap: wrap; }
+.segmented button { border: 0; background: none; min-height: 36px; padding: 0 12px; border-radius: 7px; font-size: 0.88rem; color: var(--ink-2); cursor: pointer; }
+.segmented button.on { background: var(--surface); color: var(--ink); font-weight: 600; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); }
+.cough-details summary { cursor: pointer; font-size: 0.92rem; color: var(--accent); font-weight: 500; padding: 4px 0; }
+.cough-details[open] summary { margin-bottom: 12px; }
+.player-cough { border-top: 1px solid var(--line); padding-top: 14px; }
+.pulse.hold i { background: var(--warn); height: 10px; }
+@media (max-width: 680px) {
+  .cough-row { flex-direction: column; align-items: flex-start; }
+}
+
+/* ---------- automatic practice + prompter ---------- */
+.step-link { display: flex; align-items: center; gap: 8px; border: 0; background: none; padding: 0; color: inherit; font: inherit; cursor: pointer; }
+.step-link:hover .step-label { text-decoration: underline; text-underline-offset: 3px; }
+.practice-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.line-progress { height: 4px; border-radius: 999px; background: var(--line); overflow: hidden; margin-top: -8px; }
+.line-progress span { display: block; height: 100%; background: var(--accent-2); transition: width 0.4s ease; }
+.live-status { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 40px; padding: 8px 14px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); font-weight: 500; color: var(--ink-2); align-self: center; }
+.live-status.waiting { background: var(--warn-soft); border-color: color-mix(in srgb, var(--warn) 35%, transparent); color: var(--ink); }
+
+.prompter {
+  position: relative; height: clamp(260px, 46vh, 460px); overflow-y: auto; scroll-behavior: smooth;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow);
+  -webkit-mask-image: linear-gradient(transparent 0, #000 14%, #000 86%, transparent 100%);
+          mask-image: linear-gradient(transparent 0, #000 14%, #000 86%, transparent 100%);
+  scrollbar-width: none;
+}
+.prompter::-webkit-scrollbar { display: none; }
+.prompter ol { list-style: none; margin: 0; padding: 38% 22px; display: flex; flex-direction: column; gap: 18px; }
+.prompter li { display: flex; gap: 14px; align-items: baseline; font: 400 clamp(1.15rem, 2.6vw, 1.45rem)/1.5 var(--font-serif-stack); transition: color 0.3s, opacity 0.3s, transform 0.3s; }
+.prompter li.read { color: var(--muted); opacity: 0.55; }
+.prompter li.next { color: var(--ink-2); opacity: 0.45; }
+.prompter li.current { color: var(--ink); font-size: clamp(1.3rem, 3vw, 1.7rem); font-weight: 500; }
+.line-num { flex: none; width: 1.6em; text-align: right; font: 600 0.75rem/1 var(--font-sans-stack); color: var(--muted); }
+.prompter li.current .line-num { color: var(--accent); }
+.prompter .spoken { color: var(--ink-2); }
+mark.now { background: var(--accent-soft); color: var(--ink); border-radius: 4px; padding: 0 3px; box-shadow: inset 0 -2px 0 var(--accent-2); }
+.hidden-line { display: flex; flex-wrap: wrap; gap: 6px 7px; padding-top: 0.35em; }
+.word-bar { display: inline-block; height: 0.55em; border-radius: 999px; background: var(--line-strong); }
+.prompter li.current .word-bar { background: var(--accent-2); }
+.finish-row { display: flex; justify-content: center; align-items: center; gap: 12px; flex-wrap: wrap; }
+@media (max-width: 680px) {
+  .prompter ol { padding-left: 14px; padding-right: 14px; }
+  .prompter li { gap: 10px; }
+}
+
+.pause-row { display: flex; justify-content: center; }
+
+/* ---------- dictation, word picking ---------- */
+.status-row { display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; }
+.status-row .play-button { min-height: 48px; min-width: 132px; padding: 0 20px; font-size: 1rem; }
+.live-status.writing { background: var(--accent-soft); border-color: var(--accent-2); color: var(--ink); }
+.countdown { display: inline-flex; align-items: center; gap: 10px; font-variant-numeric: tabular-nums; }
+.countdown-bar { width: 90px; height: 6px; border-radius: 999px; background: var(--line); overflow: hidden; }
+.countdown-bar span { display: block; height: 100%; background: var(--accent); transition: width 0.15s linear; }
+.pick-hint { text-align: center; margin: -8px 0 0; }
+.practice-settings { display: flex; flex-direction: column; }
+.mode-settings { display: flex; flex-direction: column; gap: 10px; }
+
+.prompter .word { cursor: pointer; border-radius: 4px; padding: 0 1px; transition: background 0.15s, color 0.15s; }
+.prompter .word:hover { background: var(--surface-2); }
+.prompter li.current .word.done { color: var(--ink-2); }
+.prompter .word.in-group { background: color-mix(in srgb, var(--accent-soft) 70%, transparent); }
+.prompter .word.now { background: var(--accent-soft); box-shadow: inset 0 -2px 0 var(--accent-2); color: var(--ink); }
+.prompter .word.marker { background: var(--warn-soft); box-shadow: 0 0 0 2px var(--warn); color: var(--ink); }
+.prompter.picking li { opacity: 1; }
+.prompter .hidden-line .word { display: inline-block; height: 0.6em; padding: 0; background: var(--line-strong); border-radius: 999px; }
+.prompter .hidden-line .word.in-group { background: var(--accent-2); }
+@media (max-width: 680px) {
+  .status-row { flex-direction: column; }
+}
+
+/* ---------- group size, writing speed, paragraphs ---------- */
+.stepper { display: inline-flex; align-items: center; border: 1px solid var(--line-strong); border-radius: 10px; overflow: hidden; background: var(--surface); }
+.stepper button { width: 44px; height: 40px; border: 0; background: var(--surface-2); font-size: 1.2rem; cursor: pointer; color: var(--ink); }
+.stepper button:disabled { opacity: 0.4; cursor: not-allowed; }
+.stepper output { min-width: 44px; text-align: center; font-weight: 600; font-variant-numeric: tabular-nums; }
+.writing-speed { display: flex; flex-direction: column; gap: 8px; }
+.preset-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip-button { border: 1px solid var(--line-strong); background: var(--surface); border-radius: 999px; padding: 5px 12px; font-size: 0.85rem; cursor: pointer; color: var(--ink-2); min-height: 34px; }
+.chip-button.on { background: var(--accent-soft); border-color: var(--accent-2); color: var(--ink); font-weight: 600; }
+.prompter li.para-start { margin-top: 18px; padding-top: 14px; border-top: 1px dashed var(--line-strong); }
+.accent-help { margin: 0 0 4px; }
+
+/* level meter with trigger line */
+.mic-meter { position: relative; overflow: visible; max-width: 200px; height: 8px; }
+.mic-meter .mic-fill { display: block; height: 100%; border-radius: 999px; background: var(--accent-2); transition: width 0.06s linear; }
+.mic-meter.over .mic-fill { background: var(--warn); }
+.mic-line { position: absolute; top: -4px; bottom: -4px; height: auto !important; width: 2px; background: var(--ink) !important; margin-left: -1px; background: var(--ink); border-radius: 1px; opacity: 0.7; }
